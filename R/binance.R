@@ -63,6 +63,7 @@ binance_check_credentials <- function() {
 
 #' Sign the query string for Binance
 #' @param params list
+#' @param time optional string
 #' @return string
 #' @keywords internal
 #' @importFrom digest hmac
@@ -71,6 +72,13 @@ binance_check_credentials <- function() {
 #' }
 binance_sign <- function(params) {
     params$timestamp <- timestamp()
+    
+    recv_window <- getOption("binancer.recv_window")
+
+    if (!is.null(recv_window)) {
+        params$recvWindow <- recv_window
+    }
+     
     params$signature <- hmac(
         key = binance_secret(),
         object = paste(
