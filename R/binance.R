@@ -774,7 +774,7 @@ binance_new_order <- function(symbol, side, type, time_in_force, quantity, price
         ## but account for the fact that the filter stepSize can be zero
         if (filters[filterType == 'MARKET_LOT_SIZE', stepSize] == 0) filters$stepSize <- 0.000001 
         
-        quot <- (quantity - filters[filterType == 'MARKET_LOT_SIZE', minQty]) / filters[filterType == 'MARKET_LOT_SIZE', stepSize]
+        quot <- (quantity - filters[filterType == 'LOT_SIZE', minQty]) / filters[filterType == 'LOT_SIZE', stepSize]
         stopifnot(abs(quot - round(quot)) < 1e-10)
 
         if (isTRUE(filters[filterType == 'MIN_NOTIONAL', applyToMarket])) {
