@@ -768,11 +768,11 @@ binance_new_order <- function(symbol, side, type, time_in_force, quantity, price
     stopifnot(abs(quot - round(quot)) < 1e-10)
 
     if (type == 'MARKET') {
-        stopifnot(quantity >= filters[filterType == 'MARKET_LOT_SIZE', minQty],
-                  quantity <= filters[filterType == 'MARKET_LOT_SIZE', maxQty])
+        stopifnot(quantity >= filters[filterType == 'LOT_SIZE', minQty],
+                  quantity <= filters[filterType == 'LOT_SIZE', maxQty])
         # work around the limitation of %% (e.g. 200.1 %% 0.1 = 0.1 !!)
         ## but account for the fact that the filter stepSize can be zero
-        if (filters[filterType == 'MARKET_LOT_SIZE', stepSize] == 0) filters$stepSize <- 0.000001 
+        if (filters[filterType == 'LOT_SIZE', stepSize] == 0) filters$stepSize <- 0.000001 
         
         quot <- (quantity - filters[filterType == 'LOT_SIZE', minQty]) / filters[filterType == 'LOT_SIZE', stepSize]
         stopifnot(abs(quot - round(quot)) < 1e-10)
