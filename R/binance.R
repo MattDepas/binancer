@@ -24,6 +24,14 @@ binance_secret <- function() {
     credentials$secret
 }
 
+#' Look up Binance API secret stored in the environment
+#' @return string
+#' @keywords internal
+version_check <- function() {
+    print("MattDepas")
+}
+
+
 
 #' Look up Binance API key stored in the environment
 #' @return string
