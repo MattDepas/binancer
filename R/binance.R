@@ -1090,3 +1090,23 @@ binance_dust_assets <- function(max_btc = 0.0001) {
   dust_deets
 }
 
+binance_dust_conversion <- function(asset) {
+
+  params <- list(asset = asset)
+  dust_convert <- binance_query(endpoint = 'sapi/v1/asset/dust', method = 'POST', params = params, sign = TRUE)
+  
+  dust_convert <- as.data.table(dust_convert)
+  
+  # for (v in c('price', 'origQty', 'executedQty', 'cummulativeQuoteQty')) {
+  #   dust_convert[, (v) := as.numeric(get(v))]
+  # }
+  # 
+  # for (v in c('transactTime')) {
+  #   dust_convert[, (v) := as.POSIXct(get(v)/1e3, origin = '1970-01-01')]
+  # }
+  # # return with snake_case column names
+  # setnames(dust_convert, to_snake_case(names(dust_convert)))
+  
+  dust_convert
+
+}

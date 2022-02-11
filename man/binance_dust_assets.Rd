@@ -4,7 +4,7 @@
 \alias{binance_dust_assets}
 \title{Fetch all assets that can be converted to dust in the Binance account}
 \usage{
-binance_dust_assets()
+binance_dust_assets(max_btc = 1e-04)
 }
 \value{
 data.table
