@@ -8,6 +8,8 @@ binance_sign(params)
 }
 \arguments{
 \item{params}{list}
+
+\item{time}{optional string}
 }
 \value{
 string

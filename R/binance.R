@@ -1058,3 +1058,35 @@ binance_all_orders <- function(symbol, order_id, start_time, end_time, limit) {
     }
     data.table(ord)
 }
+
+
+#' Fetch all assets that can be converted to dust in the Binance account
+#' @return data.table
+#' @export 
+binance_dust_assets <- function(max_btc = 0.0001) {
+ 
+  params <- list()
+  dust <- binance_query(endpoint = 'sapi/v1/asset/dust-btc', method = 'POST', params = params, sign = TRUE)
+  
+  if (is.null(names(dust))) {
+    dust <- rbindlist(dust)
+  } else {
+    dust <- as.data.table(dust)
+  }
+  dust_deets<-as.data.table(do.call(rbind,dust$details))
+  if (nrow(dust_deets) > 0) {
+    for (v in c('asset', 'assetFullName')) {
+      dust_deets[, (v) := as.character(get(v))]
+    }
+
+    for (v in c('amountFree', 'toBTC', 'toBNB', 'toBNBOffExchange', 'exchange')) {
+      dust_deets[, (v) := as.numeric(get(v))]
+    }
+    # return with snake_case column names
+    setnames(dust_deets, to_snake_case(names(dust_deets)))
+  }
+  dust_deets<-subset(dust_deets,dust_deets$to_btc<=max_btc)
+  dust_deets<-dplyr::arrange(dust_deets,desc(dust_deets$to_btc))
+  dust_deets
+}
+
