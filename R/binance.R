@@ -1118,7 +1118,7 @@ binance_dust_conversion <- function(dust) {
   
   params <- list()
   
-  if(nrow(dust)!=0){
+  if(dust!="There are no assets below the specified value that can be dusted"){
     
     for (i in 1:nrow(dust)){
       
@@ -1155,5 +1155,7 @@ binance_dust_conversion <- function(dust) {
   
 
   dust_convert
-}
+  }
+  
+  if(dust=="There are no assets below the specified value that can be dusted"){print("No assets have been specified")}
 }
