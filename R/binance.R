@@ -132,7 +132,10 @@ binance_query <- function(endpoint, method = 'GET',
         params = params,
         config = config)
 
-    assignInMyNamespace('BINANCE_WEIGHT', as.integer(headers(res)$`x-mbx-used-weight`))
+    if(!is.null(headers(res)$`x-mbx-used-weight`)){
+      assignInMyNamespace('BINANCE_WEIGHT', as.integer(headers(res)$`x-mbx-used-weight`))
+    }
+    
     res <- content(res, as = content_as)
 
     if (content_as == 'parsed' & length(res) == 2 & !is.null(names(res))) {
@@ -721,7 +724,8 @@ binance_mytrades <- function(symbol, limit, from_id, start_time, end_time) {
 #' @param side enum
 #' @param type enum
 #' @param time_in_force optional enum
-#' @param quantity number
+#' @param quantity optional number
+#' @param quoteOrderQty optional number
 #' @param price optional number
 #' @param stop_price optional number
 #' @param iceberg_qty optional number
@@ -734,8 +738,12 @@ binance_mytrades <- function(symbol, limit, from_id, start_time, end_time) {
 #' binance_new_order('ARKBTC', side = 'BUY', type = 'LIMIT', quantity = 1,
 #'                   price = 0.5, time_in_force = 'GTC')
 #' }
-binance_new_order <- function(symbol, side, type, time_in_force, quantity, price, stop_price, iceberg_qty, test = TRUE) {
+binance_new_order <- function(symbol, side, type, time_in_force, quantity, quoteOrderQty, price, stop_price, iceberg_qty, test = TRUE) {
 
+    # options
+    if(!missing(quoteOrderQty)){
+    quoteOrderQty <- format(quoteOrderQty, scientific = FALSE)}
+  
     # silence "no visible global function/variable definition" R CMD check
     filterType <- minQty <- maxQty <- stepSize <- applyToMarket <- avgPriceMins <- limit <- NULL
     minNotional <- minPrice <- maxPrice <- tickSize <- multiplierDown <- multiplierUp <- NULL
@@ -757,16 +765,25 @@ binance_new_order <- function(symbol, side, type, time_in_force, quantity, price
         stopifnot(!missing(price))
     }
 
+    if(!missing(quantity)){
     params <- list(symbol   = symbol,
                    side     = side,
                    type     = type,
-                   quantity = quantity)
+                   quantity = quantity)}
+    if(!missing(quoteOrderQty)){
+      params <- list(symbol   = symbol,
+                     side     = side,
+                     type     = type,
+                     quoteOrderQty = quoteOrderQty)
+                   }
+    
 
     if (!missing(time_in_force)) {
         time_in_force <- match.arg(time_in_force)
         params$timeInForce = time_in_force
     }
 
+    if(!missing(quantity)){
     # get filters and check
     filters <- binance_filters(symbol)
 
@@ -774,7 +791,7 @@ binance_new_order <- function(symbol, side, type, time_in_force, quantity, price
               quantity <= filters[filterType == 'LOT_SIZE', maxQty])
     # work around the limitation of %% (e.g. 200.1 %% 0.1 = 0.1 !!)
     quot <- (quantity - filters[filterType == 'LOT_SIZE', minQty]) / filters[filterType == 'LOT_SIZE', stepSize]
-    stopifnot(abs(quot - round(quot)) < 1e-10)
+    stopifnot(abs(quot - round(quot)) < 1e-10)}
 
     if (type == 'MARKET') {
         #stopifnot(quantity >= filters[filterType == 'LOT_SIZE', minQty],
@@ -786,7 +803,7 @@ binance_new_order <- function(symbol, side, type, time_in_force, quantity, price
         #
         #quot <- (quantity - filters[filterType == 'LOT_SIZE', minQty]) / filters[filterType == 'LOT_SIZE', stepSize]
         #stopifnot(abs(quot - round(quot)) < 1e-10)
-    
+      if(!missing(quantity)){
         if (isTRUE(filters[filterType == 'MIN_NOTIONAL', applyToMarket])) {
             if (filters[filterType == 'MIN_NOTIONAL', avgPriceMins] == 0) {
                 ref_price <- binance_ticker_price(symbol)$price
@@ -797,6 +814,7 @@ binance_new_order <- function(symbol, side, type, time_in_force, quantity, price
             }
             stopifnot(ref_price * quantity >= filters[filterType == 'MIN_NOTIONAL', minNotional])
         }
+      }
     }
 
     if (!missing(price)) {
@@ -1066,8 +1084,9 @@ binance_all_orders <- function(symbol, order_id, start_time, end_time, limit) {
 binance_dust_assets <- function(max_btc = 0.0001) {
  
   params <- list()
+  params$timestamp <- timestamp()
   dust <- binance_query(endpoint = 'sapi/v1/asset/dust-btc', method = 'POST', params = params, sign = TRUE)
-  
+  if(dust$totalTransferBtc==0){print("There are no assets below the specified value that can be dusted")}else{
   if (is.null(names(dust))) {
     dust <- rbindlist(dust)
   } else {
@@ -1088,14 +1107,35 @@ binance_dust_assets <- function(max_btc = 0.0001) {
   dust_deets<-subset(dust_deets,dust_deets$to_btc<=max_btc)
   dust_deets<-dplyr::arrange(dust_deets,desc(dust_deets$to_btc))
   dust_deets
-}
+}}
 
-binance_dust_conversion <- function(asset) {
+
+#' Convert 'dust' assets in the Binance account into BNB
+#' @param asset The ticker of the asset you wish to convert to BNB (e.g 'ETH')
+#' @return data.table
+#' @export 
+binance_dust_conversion <- function(dust) {
   
-  BINANCE_WEIGHT <- 0
+  params <- list()
   
-  params <- list(asset = asset)
-  dust_convert <- binance_query(endpoint = 'sapi/v1/asset/dust', method = 'POST', params = params, sign = TRUE)
+  if(nrow(dust)!=0){
+    
+    for (i in 1:nrow(dust)){
+      
+      asset_value <- dust$asset[i]
+      params_addition <- list(asset = asset_value)
+      params <- append(params,params_addition)
+      
+    }
+  
+  
+  #------------------------------------------------------------------------
+  params$timestamp <- timestamp()
+  
+  dust_convert <- binance_query(endpoint = 'sapi/v1/asset/dust', 
+                                method = 'POST', 
+                                params = params, 
+                                sign = TRUE)
   
   dust_convert <- as.data.table(dust_convert)
   
@@ -1115,5 +1155,5 @@ binance_dust_conversion <- function(asset) {
   
 
   dust_convert
-
+}
 }

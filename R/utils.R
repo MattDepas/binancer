@@ -31,7 +31,7 @@ query <- function(base, path, method,
         error = function(e) e)
 
     if (inherits(res, 'error')) {
-        if (isTRUE(retry) & retries < 4) {
+        if (isTRUE(retry) & retries < 10) {
             mc <- match.call()
             mc$retries <- retries + 1
             log_error(sprintf(

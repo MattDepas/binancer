@@ -11,6 +11,7 @@ binance_new_order(
     "TAKE_PROFIT_LIMIT", "LIMIT_MAKER"),
   time_in_force = c("GTC", "IOC", "FOK"),
   quantity,
+  quoteOrderQty,
   price,
   stop_price,
   iceberg_qty,
@@ -26,7 +27,9 @@ binance_new_order(
 
 \item{time_in_force}{optional enum}
 
-\item{quantity}{number}
+\item{quantity}{optional number}
+
+\item{quoteOrderQty}{optional number}
 
 \item{price}{optional number}
 
