@@ -1111,7 +1111,7 @@ binance_dust_assets <- function(max_btc = 0.0001) {
 
 
 #' Convert 'dust' assets in the Binance account into BNB
-#' @param asset The ticker of the asset you wish to convert to BNB (e.g 'ETH')
+#' @param dust The data.table output of binance_dust_assets function
 #' @return data.table
 #' @export 
 binance_dust_conversion <- function(dust) {
