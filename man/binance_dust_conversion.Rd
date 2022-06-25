@@ -7,7 +7,7 @@
 binance_dust_conversion(dust)
 }
 \arguments{
-\item{asset}{The ticker of the asset you wish to convert to BNB (e.g 'ETH')}
+\item{dust}{The data.table output of binance_dust_assets function}
 }
 \value{
 data.table
