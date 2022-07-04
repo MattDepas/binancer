@@ -33,9 +33,18 @@ backtest <- function(data = data,
     #create coin dataset
 
     coin_data <- gen_coindata_empty(data)
-    total <- gen_total_empty(data)
+    if(!exists("coin_data")){
+      stop("gen_coindata_empty function error")}
+      
+    total <- gen_total_empty(data, initial = initial_value)
+    if(!exists("total")){
+      stop("gen_total_empty function error")}
+      
     timelist <- gen_time(data)
-
+    if(!exists("timelist")){
+      stop("gen_time function error")}
+      
+    
     # run backtesting loop
     for (i in 1:(nrow(timelist)-1)){
       

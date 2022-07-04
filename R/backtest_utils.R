@@ -47,31 +47,31 @@ gen_coindata_empty <- function(data){
   return(x)
   }
 
-gen_total_empty <- function(data){
+gen_total_empty <- function(data, initial){
   
   #create total portfolio dataset
-  total <- data %>%
+  x <- data %>%
     dplyr::select(time) %>%
     dplyr::distinct() %>%
     dplyr::arrange(time) %>%
     #set starting BTC amount and set up checker variables
     dplyr::mutate(symbol = "Total Portfolio",
-                  value = initial_value,
+                  value = initial,
                   redist_trade_val = 0,
                   revised_trade_total = 0,
                   momentum_count = 0,
                   macd_weighting_total = 0)#%>%
   # dplyr::filter(time>= starting_date & time<= end_date)
-  return(total)
+  return(x)
 }
 
 gen_time<-function(data){
-  timelist <- data%>%
+  x <- data%>%
   dplyr::select(time) %>%
   dplyr::distinct() %>%
   dplyr::arrange(time)
   
-  return(time_list)
+  return(x)
 }
 
 
