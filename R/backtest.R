@@ -53,11 +53,11 @@ backtest <- function(data = data,
       # This function calculates the rows "proposed position", "lagged actual position", "trade" and "trade rule indicator".
       # These columns say how much you should hold, what you are currently holding, how much the trade amount should be in theory
       # and whether or not that trade amount exceeds the minimum required amount
-      coin_data <- coindata_firstloop<-function(coin_data, 
-                                                portval = portval, 
-                                                min_momentum_count = min_momentum_count,
-                                                min_trade = min_trade,
-                                                i=i) 
+      coin_data <- coindata_firstloop(coin_data, 
+                                      portval = portval, 
+                                      min_momentum_count = min_momentum_count,
+                                      min_trade = min_trade,
+                                      i=i) 
       
       #this is the amount of redistributed trade val
       redist_trade_val <- coin_data %>%
