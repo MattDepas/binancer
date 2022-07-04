@@ -19,7 +19,7 @@
 gen_coindata_empty <- function(data){
 
   #create coin dataset
-  coin_data <- data %>%
+  x <- data %>%
     
     dplyr::select(time,symbol,close,close_change,close_change_lead,macd,macd_weighting) %>%
     
@@ -44,7 +44,7 @@ gen_coindata_empty <- function(data){
     dplyr::group_by(time) %>%
     dplyr::mutate(close_change = ifelse(is.na(close_change),0,close_change))
   
-  return(coindata)
+  return(x)
   }
 
 gen_total_empty <- function(data){
@@ -100,7 +100,7 @@ coindata_firstloop<-function(data,
                              timeperiod = timeperiod,
                              i=i){
   
-  coin_data <- data %>%
+  x <- data %>%
     dplyr::ungroup()%>%
     dplyr::group_by(symbol) %>%
     dplyr::mutate(
@@ -142,6 +142,6 @@ coindata_firstloop<-function(data,
                                                              0),
                                               dust_indicator))
   
-  return(coin_data)
+  return(x)
   
 }
