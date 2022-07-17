@@ -6,9 +6,6 @@
 \usage{
 gen_coindata_empty(data)
 }
-\arguments{
-\item{fees}{}
-}
 \description{
 generate empty dataset in backtest
 }

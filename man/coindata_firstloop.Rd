@@ -6,11 +6,11 @@
 \usage{
 coindata_firstloop(
   data,
-  portval = portval,
-  min_momentum_count = min_momentum_count,
-  min_trade = min_trade,
-  timeperiod = timeperiod,
-  i = i
+  portval_loop1,
+  min_momentum_count_loop1,
+  min_trade_loop1,
+  timeperiod_loop1,
+  i_loop1
 )
 }
 \arguments{

@@ -36,6 +36,7 @@ backtest_settings <- function(indicator = "MACD",
                               initial_value = 1,
                               min_trade = 0.0002){
   
+  
   #Indicator type
   settings$indicator <- indicator
   
@@ -66,7 +67,8 @@ backtest_settings <- function(indicator = "MACD",
   #Binance trade rules
   settings$min_trade <- min_trade #minimum trade amount stated by binance
   settings$min_momentum_count <- min_momentum_count #The amount of the market required to eb showing positive momentum to trade
-  
+ 
+  return(as.list(settings))
 }
 
 #' Check the settings specified for backtesting
