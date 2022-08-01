@@ -36,7 +36,7 @@ backtest <- function(data = data,
     if(!exists("coin_data")){
       stop("gen_coindata_empty function error")}
     
-    print(initial_value)  
+
     total <- gen_total_empty(data)
     if(!exists("total")){
       stop("gen_total_empty function error")}
@@ -44,9 +44,7 @@ backtest <- function(data = data,
     timelist <- gen_time(data)
     if(!exists("timelist")){
       stop("gen_time function error")}
-    print(coin_data)
-    print(total)
-    print(timelist)
+
       
     
     # run backtesting loop
@@ -73,7 +71,24 @@ backtest <- function(data = data,
         dplyr::summarise(sum(trade[trade_rule1_indicator==0]))%>%
         dplyr::rename(redist_val="sum(trade[trade_rule1_indicator == 0])")
       redist_val <- redist_trade_val$redist_val[1]
-
+      
+      #this is the amount of dust converted to bnb
+      dust_val <- coin_data %>%
+        dplyr::ungroup() %>%
+        dplyr::filter(time == timeperiod & !is.na(trade)) %>%
+        dplyr::mutate(lagged_actual_position=dplyr::if_else(is.na(lagged_actual_position),
+                                                             0,
+                                                             lagged_actual_position))%>%
+        dplyr::summarise(sum(lagged_actual_position[dust_indicator==0]))%>%
+        dplyr::rename(dust_val="sum(lagged_actual_position[dust_indicator == 0])")
+      
+      if(is.null(dust_val$dust_val[1])){
+      dust_val <- 0
+      }else{
+      dust_val <- dust_val$dust_val[1]
+      }
+      print(dust_val)
+      
       coin_data <- coin_data %>%
         dplyr::ungroup()%>%
         dplyr::group_by(time) %>%
@@ -91,10 +106,12 @@ backtest <- function(data = data,
                                                                              trade+(tradeshare_samesign*redist_val),
                                                                              0),
                                                               revised_trade),
-                      actual_position =        dplyr::if_else(time==timeperiod,
-                                                              dplyr::if_else(is.na(lagged_actual_position+revised_trade),
-                                                                             0,
-                                                                             (lagged_actual_position+revised_trade)-fees*revised_trade),
+                      actual_position =        dplyr::case_when(time==timeperiod & is.na(lagged_actual_position+revised_trade) ~ 0,
+                                                                time==timeperiod & !is.na(lagged_actual_position+revised_trade) & dust_indicator == 1 ~ (lagged_actual_position+revised_trade)-fees*revised_trade,
+                                                                time==timeperiod & !is.na(lagged_actual_position+revised_trade) & dust_indicator == 0 ~ revised_trade-fees*revised_trade,
+                                                                TRUE~actual_position),
+                      actual_position =        dplyr::if_else(time==timeperiod & symbol=="BNBBTC" & !is.na(dust_val),
+                                                              actual_position+(1-fees)*dust_val,
                                                               actual_position),
                       portfolio_share =        dplyr::if_else(time==timeperiod,
                                                               100*(actual_position/portval),
@@ -124,6 +141,7 @@ backtest <- function(data = data,
       #revise portfolio value by adding the diff or removing the diff between trade amount and raw_weights_resdist_port_val_change_revised
 
       total$redist_trade_val[i] <- redist_val
+      total$dust_val[i] <- dust_val
       total$revised_trade_total[i] <- revised_trade_total
       total$momentum_count[i] <- momentum_count
       total$macd_weighting_total[i] <- weighting_check$value[1]

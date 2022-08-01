@@ -32,9 +32,9 @@ backtest_settings <- function(indicator = "MACD",
                               interval = c("1h"),
                               start_time = Sys.Date()-90,
                               end_time = Sys.Date(),
-                              base_currency = "BTC",
+                              base_currency = "BUSD",
                               initial_value = 1,
-                              min_trade = 0.0002){
+                              min_trade = 5){
   
   
   #Indicator type
@@ -122,7 +122,7 @@ coin_data_importer<-function(symbol, interval = interval, start_time = start_tim
   coin <- symbol
   
   coin_data <- data.frame(binance_klines(as.character(coin),interval = interval, start_time = start_time, end_time = end_time)) %>%
-    dplyr::select(symbol, close_time, open, high, low, close, trades, volume) %>%
+    dplyr::select(symbol, close_time, open, high, low, close, trades, volume, quote_asset_volume) %>%
     dplyr::arrange(symbol,close_time) %>%
     #obtain distinct
     # mutate(date = str_sub(as.character(close_time),1,10))%>%
@@ -134,10 +134,12 @@ coin_data_importer<-function(symbol, interval = interval, start_time = start_tim
   coin_data_revised<-data.frame(coin_data$symbol,
                                 coin_data$close_time,
                                 coin_data$close,
-                                coin_data$volume)%>%
+                                coin_data$volume,
+                                coin_data$quote_asset_volume)%>%
     dplyr::rename(time = "coin_data.close_time",
                   close = "coin_data.close",
-                  volume = "coin_data.volume")
+                  volume = "coin_data.volume",
+                  quote_asset_volume = "coin_data.quote_asset_volume")
   
   return(coin_data_revised)
   
@@ -169,7 +171,7 @@ historical <- function(interval = settings$interval, start_time = settings$start
   
   historical_data<-data.frame(binancer::binance_symbols()) %>%
     dplyr::rename('coins' = binancer..binance_symbols..)%>%
-    dplyr::filter(stringr::str_sub(coins,-3,-1) == base_currency) %>%
+    dplyr::filter(stringr::str_sub(coins,-4,-1) == base_currency) %>%
     dplyr::arrange(coins)%>%
     dplyr::mutate(datasets = purrr::map(as.character(coins),
                                         possibly(~coin_data_importer(symbol = .x,
@@ -265,16 +267,6 @@ generate_indicator <- function(historical_data = historical_data, indicator = se
   }
   
   return(df_indicator)
-  
-  
-  # if(settings$indicator=="RSI"){
-  # historical_data}
-  
-  # if(settings$indicator=="RSI"){
-  #   historical_data}
-  #
-  # if(settings$indicator=="RSI"){
-  #   historical_data}
   
 }
 

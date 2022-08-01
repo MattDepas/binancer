@@ -52,6 +52,7 @@ gen_total_empty <- function(data,
     dplyr::mutate(symbol = "Total Portfolio",
                   value = initial,
                   redist_trade_val = 0,
+                  dust_val = 0,
                   revised_trade_total = 0,
                   momentum_count = 0,
                   macd_weighting_total = 0)#%>%
@@ -142,9 +143,9 @@ coindata_firstloop<-function(data,
                                                 TRUE ~ trade_rule1_indicator),
       
       # equal to 1 if a dust conversion is required
-      dust_indicator      =    dplyr::case_when(time==timeperiod_loop1 & trade_rule1_indicator == 0 & proposed_position<lagged_actual_position ~ 1,
-                                                time==timeperiod_loop1 & trade_rule1_indicator != 0 & proposed_position<lagged_actual_position ~ 0,
-                                                time==timeperiod_loop1 & trade_rule1_indicator == 0 & proposed_position>lagged_actual_position ~ 0,
+      dust_indicator      =    dplyr::case_when(time==timeperiod_loop1 & lagged_actual_position > min_trade_loop1 ~ 1,
+                                                time==timeperiod_loop1 & lagged_actual_position < min_trade_loop1 & lagged_actual_position!=0 ~ 0,
+                                                time==timeperiod_loop1 & lagged_actual_position < min_trade_loop1 & lagged_actual_position==0 ~ 1,
                                                 TRUE ~ dust_indicator))
   
   return(x)
