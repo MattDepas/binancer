@@ -208,10 +208,8 @@ historical <- function(interval = settings$interval, start_time = settings$start
 #' @examples
 #'
 
-generate_indicator <- function(historical_data = historical_data, indicator = settings$indicator){
+generate_indicator <- function(historical_data = historical_data){
   
-  if(indicator=="MACD"){
-    
     matrix_macd<-as.matrix(c("insufficient data"))
     colnames(matrix_macd)<-"macd"
     
@@ -239,32 +237,6 @@ generate_indicator <- function(historical_data = historical_data, indicator = se
                     macd_weighting = dplyr::if_else(is.na(macd_weighting),
                                                     0,
                                                     macd_weighting))
-  }
-  
-  if(indicator=="RSI"){
-    
-    df_indicator <-  historical_data%>%
-      dplyr::arrange(symbol,time)%>%
-      dplyr::group_by(symbol)%>%
-      dplyr::mutate(rsi=as.numeric(tryCatch(TTR::RSI(close,
-                                                     n = settings$n),
-                                            error=function(err) as.numeric("na"))))%>%
-      dplyr::ungroup()%>%
-      dplyr::group_by(time)%>%
-      dplyr::mutate(rsi_great50 = dplyr::if_else(as.numeric(rsi)>50,
-                                                 as.numeric(rsi),
-                                                 0),
-                    rsi_great50 = dplyr::if_else(is.na(rsi_great50),
-                                                 0,
-                                                 rsi_great50),
-                    rsi_weighting = dplyr::if_else(rsi_great50/sum(rsi_great50)>0,
-                                                   rsi_great50/sum(rsi_great50),
-                                                   0),
-                    rsi_weighting = dplyr::if_else(is.na(rsi_weighting),
-                                                   0,
-                                                   rsi_weighting))
-    
-  }
   
   return(df_indicator)
   
